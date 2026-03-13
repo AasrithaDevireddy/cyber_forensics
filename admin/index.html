@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forensic Control Center — Anti-Honeypot System</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #070b14;
+      --bg2: #0d1526;
+      --bg3: #141f35;
+      --border: rgba(255,255,255,0.07);
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59,130,246,0.3);
+      --critical: #ef4444;
+      --high: #f97316;
+      --medium: #f59e0b;
+      --low: #22c55e;
+      --accent: #06b6d4;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Login Screen ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.15), transparent 60%),
+                  var(--bg);
+    }
+
+    .login-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px;
+      width: 380px;
+      box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    }
+
+    .login-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(6,182,212,0.2));
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    .login-card h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .login-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .field input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .login-btn {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: 'Manrope', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .login-btn:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .login-error {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--critical);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    /* ── App Layout ── */
+    #app { display: none; min-height: 100vh; }
+
+    .app-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: 60px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+      grid-column: 1 / -1;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+    }
+
+    .topbar-logo {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-logo span { color: var(--primary); }
+
+    .topbar-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--low);
+      margin-left: 24px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--low);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .topbar-badge {
+      background: rgba(239,68,68,0.15);
+      color: var(--critical);
+      border: 1px solid rgba(239,68,68,0.3);
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      display: none;
+    }
+
+    .btn-report {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Manrope', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .btn-report:hover { background: #2563eb; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 20px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(59,130,246,0.15);
+      color: var(--primary);
+      border: 1px solid rgba(59,130,246,0.2);
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* ── Main Content ── */
+    .main { overflow-y: auto; padding: 24px; }
+
+    /* ── Stat Cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .stat-card .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: 800;
+      font-family: var(--mono);
+      line-height: 1;
+    }
+
+    .stat-card .trend {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Charts Row ── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .chart-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .chart-card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Sessions Table ── */
+    .table-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .table-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table-header h3 {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg3);
+    }
+
+    td {
+      padding: 12px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .risk-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 800;
+      font-family: 'Manrope', sans-serif;
+    }
+
+    .risk-CRITICAL { background: rgba(239,68,68,0.15); color: var(--critical); border: 1px solid rgba(239,68,68,0.3); }
+    .risk-HIGH { background: rgba(249,115,22,0.15); color: var(--high); border: 1px solid rgba(249,115,22,0.3); }
+    .risk-MEDIUM { background: rgba(245,158,11,0.15); color: var(--medium); border: 1px solid rgba(245,158,11,0.3); }
+    .risk-LOW { background: rgba(34,197,94,0.15); color: var(--low); border: 1px solid rgba(34,197,94,0.3); }
+
+    .attack-badge {
+      display: inline-block;
+      background: rgba(59,130,246,0.1);
+      color: var(--primary);
+      border: 1px solid rgba(59,130,246,0.2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--mono);
+    }
+
+    .btn-view {
+      background: var(--bg3);
+      color: var(--primary);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-view:hover {
+      background: rgba(59,130,246,0.15);
+      border-color: var(--primary);
+    }
+
+    /* ── Session Detail Panel ── */
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      display: none;
+      backdrop-filter: blur(4px);
+    }
+
+    .panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 600px;
+      background: var(--bg2);
+      border-left: 1px solid var(--border);
+      z-index: 201;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .panel-close {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .meta-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .meta-item .key {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      font-family: 'Manrope', sans-serif;
+    }
+
+    .meta-item .val {
+      font-size: 13px;
+      font-family: var(--mono);
+      word-break: break-all;
+    }
+
+    .payload-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .payload-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .payload-raw {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--critical);
+      background: rgba(239,68,68,0.05);
+      border: 1px solid rgba(239,68,68,0.2);
+      padding: 10px;
+      border-radius: 6px;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+
+    /* ── Timeline ── */
+    .timeline-event {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .timeline-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .timeline-content {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .timeline-content .ts {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin-bottom: 4px;
+    }
+
+    .timeline-content .ev {
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    /* view hiding */
+    .view { display: none; }
+    .view.active { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-icon">🔍</div>
+    <h1>Forensic Command Center</h1>
+    <p>Anti-Honeypot Intelligence System — Authorized Access Only</p>
+    <div class="login-error" id="auth-error">Invalid credentials. Access denied.</div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="auth-user" placeholder="admin" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="auth-pass" placeholder="••••••••••" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">AUTHENTICATE →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="app-layout">
+    
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-logo">⬡ <span>FORENSIC</span> CENTER</div>
+      <div class="topbar-status">
+        <div class="status-dot"></div>
+        MONITORING ACTIVE
+      </div>
+      <div class="topbar-actions">
+        <span class="topbar-badge" id="critical-badge">0 CRITICAL</span>
+        <button class="btn-report" onclick="downloadFullReport()">
+⬇ Full Report PDF
+</button>
+        <button class="btn-report" style="background:var(--bg3);color:var(--text-muted);border:1px solid var(--border)" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <button class="nav-item active" onclick="showView('overview', this)">
+        📊 Overview
+      </button>
+      <button class="nav-item" onclick="showView('sessions', this)">
+        👥 Sessions
+      </button>
+      <button class="nav-item" onclick="showView('attacks', this)">
+        ⚔️ Attacks
+      </button>
+      <button class="nav-item" onclick="showView('timeline', this)">
+        📅 Timeline
+      </button>
+      <div class="nav-divider"></div>
+      <button class="nav-item" onclick="showView('payloads', this)">
+        💉 Payloads
+      </button>
+      <button class="nav-item" onclick="showView('integrity', this)">
+        🔗 Integrity
+      </button>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main">
+      
+      <!-- OVERVIEW VIEW -->
+      <div class="view active" id="view-overview">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card"><div class="label">Total Sessions</div><div class="number" id="stat-sessions">–</div></div>
+          <div class="stat-card"><div class="label">Total Events</div><div class="number" id="stat-events">–</div></div>
+          <div class="stat-card"><div class="label" style="color:var(--critical)">Attack Events</div><div class="number" style="color:var(--critical)" id="stat-attacks">–</div></div>
+          <div class="stat-card"><div class="label">Unique IPs</div><div class="number" id="stat-ips">–</div></div>
+        </div>
+        
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3>Attack Timeline (Last 24h)</h3>
+            <canvas id="timeline-chart" height="120"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Attack Types</h3>
+            <canvas id="attack-chart" height="120"></canvas>
+          </div>
+        </div>
+        
+        <div class="charts-row">
+          
+            
+         
+        </div>
+      </div>
+      
+      <!-- SESSIONS VIEW -->
+      <div class="view" id="view-sessions">
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Attacker Sessions</h3>
+            <span id="sessions-count" style="font-size:12px;color:var(--text-muted)"></span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Session ID</th>
+                <th>IP Address</th>
+                <th>Location</th>
+                <th>User Agent</th>
+                <th>Requests</th>
+                <th>Risk</th>
+                <th>Last Seen</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-tbody">
+              <tr><td colspan="8" class="loading">Loading sessions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- ATTACKS VIEW -->
+      <div class="view" id="view-attacks">
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Attack Events</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>IP</th>
+                <th>Country</th>
+                <th>Attack Type</th>
+                <th>MITRE</th>
+                <th>Path</th>
+                <th>Severity</th>
+              </tr>
+            </thead>
+            <tbody id="attacks-tbody">
+              <tr><td colspan="7" class="loading">Loading attacks...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- TIMELINE VIEW -->
+      <div class="view" id="view-timeline">
+        <div class="table-card">
+          <div class="table-header"><h3>Event Timeline</h3></div>
+          <div style="padding:20px" id="timeline-list">
+            <div class="loading">Loading timeline...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- PAYLOADS VIEW -->
+      <div class="view" id="view-payloads">
+        <div id="payloads-list">
+          <div class="loading">Loading payloads...</div>
+        </div>
+      </div>
+      
+      <!-- INTEGRITY VIEW -->
+      <div class="view" id="view-integrity">
+        <div class="table-card">
+          <div class="table-header"><h3>Integrity Chain Verification</h3></div>
+          <table>
+            <thead>
+              <tr>
+                <th>Entry #</th>
+                <th>Table</th>
+                <th>Record Hash</th>
+                <th>Chain Hash</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="integrity-tbody">
+              <tr><td colspan="5" class="loading">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+    </div><!-- /main -->
+  </div><!-- /app-layout -->
+</div><!-- /app -->
+
+<!-- Session Detail Panel -->
+<div class="panel-backdrop"></div>
+
+<div class="session-panel">
+  <div class="panel-header">
+
+  </div>
+
+  <div id="panel-body"></div>
+</div>
+
+<script>
+
+// Admin Dashboard JavaScript
+
+
+// Get the secret path from the URL
+const ADMIN_PATH = window.location.pathname.replace(/\/$/, '');
+const API_BASE = ADMIN_PATH + '/api';
+
+let authToken = sessionStorage.getItem('fcs_token');
+let charts = {};
+
+// ── Auth ───────────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('auth-user').value;
+  const password = document.getElementById('auth-pass').value;
+  const errEl = document.getElementById('auth-error');
+  
+  try {
+    const res = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    
+    const data = await res.json();
+    
+    if (data.token) {
+      authToken = data.token;
+      sessionStorage.setItem('fcs_token', authToken);
+      showApp();
+    } else {
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Connection failed. Is the server running?';
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+    doLogin();
+  }
+});
+
+function logout() {
+  sessionStorage.removeItem('fcs_token');
+  authToken = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ── API Helper ─────────────────────────────────────────────────
+async function api(endpoint) {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    headers: { 'Authorization': `Bearer ${authToken}` },
+  });
+  
+  if (res.status === 401) {
+    logout();
+    throw new Error('Unauthorized');
+  }
+  
+  return res.json();
+}
+
+// ── Show App ───────────────────────────────────────────────────
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadAll();
+  
+  // Auto-refresh every 30 seconds
+  setInterval(loadAll, 30000);
+}
+
+async function loadAll() {
+  loadStats();
+  loadSessions();
+  loadAttacks();
+  loadTimeline();
+  loadPayloads();
+  loadIntegrity();
+}
+
+// ── Stats & Charts ─────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const data = await api('/stats');
+    const s = data.stats;
+    
+    document.getElementById('stat-sessions').textContent = s.total_sessions || 0;
+    document.getElementById('stat-events').textContent = s.total_events || 0;
+    document.getElementById('stat-attacks').textContent = s.attack_events || 0;
+    document.getElementById('stat-ips').textContent = s.unique_ips || 0;
+    
+    // Critical badge
+    const criticalCount = (s.critical_sessions || 0) + (s.high_sessions || 0);
+    const badge = document.getElementById('critical-badge');
+    if (criticalCount > 0) {
+      badge.style.display = 'block';
+      badge.textContent = `${criticalCount} HIGH+`;
+    }
+    
+    // Timeline chart
+    renderTimelineChart(data.timeline || []);
+    renderAttackChart(data.attackDistribution || []);
+    renderGeoChart(data.geoDistribution || []);
+    
+  } catch (e) {}
+}
+
+function renderTimelineChart(timeline) {
+  const ctx = document.getElementById('timeline-chart');
+  if (!ctx) return;
+  
+  if (charts.timeline) charts.timeline.destroy();
+  
+  charts.timeline = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: timeline.map(t => t.hour?.slice(11, 16) || ''),
+      datasets: [{
+        label: 'Events',
+        data: timeline.map(t => t.count),
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+      }
+    }
+  });
+}
+
+function renderAttackChart(distribution) {
+  const ctx = document.getElementById('attack-chart');
+  if (!ctx) return;
+  
+  if (charts.attack) charts.attack.destroy();
+  
+  charts.attack = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: distribution.map(d => d.attack_type),
+      datasets: [{
+        data: distribution.map(d => d.count),
+        backgroundColor: ['#ef4444','#f97316','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#64748b', font: { size: 10 }, padding: 8 } }
+      }
+    }
+  });
+}
+
+function renderGeoChart(geo) {
+  const ctx = document.getElementById('geo-chart');
+  if (!ctx) return;
+  
+  if (charts.geo) charts.geo.destroy();
+  
+  charts.geo = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: geo.slice(0, 8).map(g => g.geo_country),
+      datasets: [{
+        label: 'Sessions',
+        data: geo.slice(0, 8).map(g => g.count),
+        backgroundColor: 'rgba(59,130,246,0.7)',
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+      }
+    }
+  });
+}
+
+// ── Sessions ───────────────────────────────────────────────────
+async function loadSessions() {
+  try {
+    const data = await api('/sessions');
+    const sessions = data.sessions || [];
+    
+    document.getElementById('sessions-count').textContent = `${sessions.length} sessions`;
+    
+    const tbody = document.getElementById('sessions-tbody');
+    
+    if (sessions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">👁️</div>No sessions yet. Waiting for activity...</div></td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = sessions.map(s => `
+      <tr>
+        <td style="color:var(--text-muted)">${s.id.substring(0, 8)}...</td>
+        <td style="color:var(--accent)">${s.ip}</td>
+        <td>${s.geo_country ? `${s.geo_country} / ${s.geo_city || '?'}` : 'Unknown'}</td>
+        <td style="color:var(--text-muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(s.user_agent || '')}">${(s.user_agent || 'Unknown').substring(0, 30)}...</td>
+        <td>${s.request_count || 0}</td>
+        <td><span class="risk-badge risk-${s.risk_level}">${s.risk_level} (${s.risk_score || 0})</span></td>
+        <td style="color:var(--text-muted)">${new Date(s.last_seen).toLocaleString()}</td>
+        <td>
+          <button class="btn-view" onclick="openSession('${s.id}')">View →</button>
+          <a href="${API_BASE}/report/${s.id}" style="margin-left:4px" onclick="return dlReport('${s.id}')">
+            <button class="btn-view" style="color:var(--low)">PDF</button>
+          </a>
+        </td>
+      </tr>
+    `).join('');
+    
+  } catch (e) {}
+}
+
+function dlReport(sessionId) {
+  window.open(`${API_BASE}/report/${sessionId}`, '_blank');
+  return false;
+}
+
+// ── Attacks ────────────────────────────────────────────────────
+async function loadAttacks() {
+  try {
+    const data = await api('/attacks');
+    const attacks = data.attacks || [];
+    
+    const tbody = document.getElementById('attacks-tbody');
+    
+    if (attacks.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">🛡️</div>No attacks detected yet</div></td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = attacks.map(a => `
+      <tr>
+        <td style="color:var(--text-muted)">${new Date(a.timestamp).toLocaleString()}</td>
+        <td style="color:var(--accent)">${a.ip}</td>
+        <td>${a.geo_country || 'Unknown'}</td>
+        <td><span class="attack-badge">${a.attack_type}</span></td>
+        <td style="color:var(--medium)">${a.mitre_id || 'N/A'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escapeHtml(a.path || '')}</td>
+        <td><span class="risk-badge risk-${a.severity || 'LOW'}">${a.severity || 'LOW'}</span></td>
+      </tr>
+    `).join('');
+    
+  } catch (e) {}
+}
+
+// ── Timeline ───────────────────────────────────────────────────
+async function loadTimeline() {
+  try {
+    const data = await api('/events');
+    const events = data.events || [];
+    
+    const container = document.getElementById('timeline-list');
+    
+    if (events.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">📅</div>No events yet</div>';
+      return;
+    }
+    
+    container.innerHTML = events.slice(0, 50).map(e => {
+      const color = {
+        CRITICAL: 'var(--critical)',
+        HIGH: 'var(--high)',
+        MEDIUM: 'var(--medium)',
+        LOW: 'var(--low)',
+        INFO: 'var(--text-muted)',
+      }[e.severity] || 'var(--text-muted)';
+      
+      return `
+        <div class="timeline-event">
+          <div class="timeline-dot" style="background:${color}"></div>
+          <div class="timeline-content">
+            <div class="ts">${new Date(e.timestamp).toISOString()}</div>
+            <div class="ev">
+              <strong style="color:${color}">${e.event_type}</strong>
+              ${e.attack_type ? `<span class="attack-badge">${e.attack_type}</span>` : ''}
+              — ${e.method} <span style="color:var(--accent)">${escapeHtml(e.path || '')}</span>
+              from <strong>${e.ip}</strong> (${e.geo_country || '?'})
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+  } catch (e) {}
+}
+
+// ── Payloads ───────────────────────────────────────────────────
+async function loadPayloads() {
+  try {
+    const data = await api('/attacks');
+    const attacks = data.attacks || [];
+    
+    const container = document.getElementById('payloads-list');
+    
+    const payloadAttacks = attacks.filter(a => a.attack_type);
+    
+    if (payloadAttacks.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">💉</div>No payloads captured yet</div>';
+      return;
+    }
+    
+    container.innerHTML = payloadAttacks.slice(0, 30).map(a => `
+      <div class="payload-item">
+        <div class="payload-header">
+          <span class="attack-badge">${a.attack_type}</span>
+          <span class="risk-badge risk-${a.severity}">${a.severity}</span>
+          <span style="font-size:11px;color:var(--text-muted);font-family:var(--mono)">${a.ip} — ${new Date(a.timestamp).toLocaleString()}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Path: ${escapeHtml(a.path || '')} | Method: ${a.method}</div>
+        ${a.mitre_id ? `<div style="font-size:10px;color:var(--medium);margin-bottom:6px">MITRE: ${a.mitre_id} — ${a.mitre_technique || 'N/A'}</div>` : ''}
+      </div>
+    `).join('');
+    
+  } catch (e) {}
+}
+
+// ── Integrity ──────────────────────────────────────────────────
+async function loadIntegrity() {
+  try {
+    const data = await api('/integrity');
+    const chain = data.chain || [];
+    
+    const tbody = document.getElementById('integrity-tbody');
+    tbody.innerHTML = chain.slice(-30).map(c => `
+      <tr>
+        <td style="color:var(--low)">${c.id}</td>
+        <td>${c.table_name}</td>
+        <td style="color:var(--text-muted)">${c.record_hash.substring(0, 20)}...</td>
+        <td style="color:var(--accent)">${c.chain_hash.substring(0, 20)}...</td>
+        <td style="color:var(--text-muted)">${new Date(c.timestamp * 1000).toLocaleString()}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="5">No chain entries</td></tr>';
+    
+  } catch (e) {}
+}
+
+// ── Session Detail Panel ───────────────────────────────────────
+async function openSession(sessionId) {
+  document.getElementById('panel-overlay').style.display = 'block';
+  document.getElementById('session-panel').style.right = '0';
+  document.getElementById('panel-content').innerHTML = '<div class="loading">Loading session data...</div>';
+  
+  try {
+    const data = await api(`/sessions/${sessionId}`);
+    const { session, events, payloads } = data;
+    
+    const riskColor = {
+      CRITICAL: 'var(--critical)', HIGH: 'var(--high)',
+      MEDIUM: 'var(--medium)', LOW: 'var(--low)'
+    }[session.risk_level] || 'var(--text-muted)';
+    
+    document.getElementById('panel-content').innerHTML = `
+      <div class="section-label">Session Overview</div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="key">Session ID</div>
+          <div class="val" style="font-size:10px">${session.id}</div>
+        </div>
+        <div class="meta-item">
+          <div class="key">IP Address</div>
+          <div class="val" style="color:var(--accent)">${session.ip}</div>
+        </div>
+        <div class="meta-item">
+          <div class="key">Location</div>
+          <div class="val">${session.geo_country || '?'} / ${session.geo_city || '?'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="key">Risk Level</div>
+          <div class="val" style="color:${riskColor}">${session.risk_level} (${session.risk_score}/100)</div>
+        </div>
+        <div class="meta-item">
+          <div class="key">First Seen</div>
+          <div class="val" style="font-size:10px">${new Date(session.first_seen).toLocaleString()}</div>
+        </div>
+        <div class="meta-item">
+          <div class="key">Total Requests</div>
+          <div class="val">${session.request_count}</div>
+        </div>
+        <div class="meta-item">
+          <div class="key">Is Bot</div>
+          <div class="val" style="color:${session.is_bot ? 'var(--critical)' : 'var(--low)'}">${session.is_bot ? 'YES' : 'NO'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="key">Fingerprint</div>
+          <div class="val" style="font-size:9px">${session.fingerprint?.substring(0, 20)}...</div>
+        </div>
+      </div>
+      
+      <div class="meta-item" style="margin-bottom:16px">
+        <div class="key">User Agent</div>
+        <div class="val" style="font-size:10px;word-break:break-all">${escapeHtml(session.user_agent || 'Unknown')}</div>
+      </div>
+      
+      <div style="margin-bottom:16px">
+        <a href="${API_BASE}/report/${session.id}" target="_blank">
+          <button class="btn-report" style="width:100%">⬇ Download PDF Report for This Session</button>
+        </a>
+      </div>
+      
+      ${payloads.length > 0 ? `
+        <div class="section-label" style="margin-top:20px">Attack Payloads (${payloads.length})</div>
+        ${payloads.map(p => `
+          <div class="payload-item">
+            <div class="payload-header">
+              <span class="attack-badge">${p.payload_type}</span>
+              <span style="font-size:10px;color:var(--text-muted)">${new Date(p.timestamp).toLocaleString()}</span>
+            </div>
+            <div class="payload-raw">${escapeHtml(p.raw_payload || '')}</div>
+          </div>
+        `).join('')}
+      ` : ''}
+      
+      <div class="section-label" style="margin-top:20px">Event Log (${events.length} events)</div>
+      ${events.map(e => {
+        const color = {CRITICAL:'var(--critical)',HIGH:'var(--high)',MEDIUM:'var(--medium)',LOW:'var(--low)',INFO:'var(--text-muted)'}[e.severity]||'var(--text-muted)';
+        return `
+          <div class="timeline-event">
+            <div class="timeline-dot" style="background:${color}"></div>
+            <div class="timeline-content">
+              <div class="ts">${new Date(e.timestamp).toISOString()}</div>
+              <div class="ev">
+                ${e.attack_type ? `<span class="attack-badge">${e.attack_type}</span> ` : ''}
+                ${e.method} ${escapeHtml(e.path || '')}
+                ${e.mitre_id ? `<span style="color:var(--medium);font-size:10px"> [${e.mitre_id}]</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    `;
+    
+  } catch (e) {
+    document.getElementById('panel-content').innerHTML = `<div class="empty-state">Failed to load session: ${e.message}</div>`;
+  }
+}
+
+function closePanel() {
+  document.getElementById('panel-overlay').style.display = 'none';
+}
+async function downloadFullReport() {
+
+  if (!authToken) {
+    alert("Session expired. Please login again.");
+    return;
+  }
+
+  try {
+
+    const response = await fetch(`${API_BASE}/report`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${authToken}`
+      }
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Report error:", text);
+      alert("Report generation failed");
+      return;
+    }
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "forensic_report.pdf";
+
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+  } catch (err) {
+    console.error("Download error:", err);
+    alert("Failed to download report");
+  }
+}
+
+
+// ── Navigation ─────────────────────────────────────────────────
+function showView(viewName, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`view-${viewName}`).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ── Init ───────────────────────────────────────────────────────
+if (authToken) {
+  showApp();
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+<script src="/admin/assets/admin.js"></script>
+
+</body>
+</html>
+</body>
+</html>

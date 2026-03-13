@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Manager — TechVault Solutions</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="/js/app.js" defer></script>
+  <style>
+    /* Upload Page Specific Styles */
+    body { background:#f1f5f9; font-family:'Inter',sans-serif; margin:0; }
+
+    /* Layout */
+    .upload-layout { display:grid; grid-template-columns:220px 1fr; grid-template-rows:56px 1fr; min-height:100vh; }
+
+    /* Topbar */
+    .upload-topbar { grid-column:1/-1; background:#fff; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; padding:0 20px; gap:16px; }
+    .upload-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
+    .upload-logo-hex { font-size:20px; color:#4f46e5; }
+    .upload-logo-name { font-size:16px; font-weight:800; color:#0f172a; }
+    .topbar-nav { display:flex; gap:4px; margin-left:24px; }
+    .tnav-item { padding:6px 14px; border-radius:8px; font-size:13px; font-weight:500; color:#64748b; cursor:pointer; text-decoration:none; transition:all 0.15s; }
+    .tnav-item:hover { background:#f8fafc; color:#334155; }
+    .tnav-item.active { background:#eef2ff; color:#4f46e5; font-weight:600; }
+    .topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    .topbar-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#4f46e5,#06b6d4); color:white; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+
+    /* Sidebar */
+    .upload-sidebar { background:#fff; border-right:1px solid #e2e8f0; padding:16px 12px; }
+    .sidebar-heading { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#94a3b8; padding:8px 10px 6px; }
+    .sidebar-link { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:13px; font-weight:500; color:#64748b; cursor:pointer; background:none; border:none; width:100%; text-align:left; font-family:'Inter',sans-serif; text-decoration:none; transition:all 0.15s; }
+    .sidebar-link:hover { background:#f8fafc; color:#334155; }
+    .sidebar-link.active { background:#eef2ff; color:#4f46e5; font-weight:600; }
+    .storage-meter { margin:16px 12px 0; padding:14px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0; }
+    .storage-label { font-size:11px; color:#64748b; margin-bottom:8px; display:flex; justify-content:space-between; }
+    .storage-bar { height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+    .storage-fill { height:100%; width:68%; background:linear-gradient(90deg,#4f46e5,#06b6d4); border-radius:3px; }
+    .storage-numbers { font-size:11px; color:#94a3b8; margin-top:6px; }
+
+    /* Main */
+    .upload-main { padding:28px; overflow-y:auto; }
+
+    /* Breadcrumb */
+    .breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:#64748b; margin-bottom:24px; }
+    .breadcrumb a { color:#4f46e5; text-decoration:none; font-weight:500; }
+    .breadcrumb-sep { color:#cbd5e1; }
+    .breadcrumb-current { color:#334155; font-weight:600; }
+
+    /* Section header */
+    .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .section-header h1 { font-size:20px; font-weight:800; color:#0f172a; }
+    .section-actions { display:flex; gap:10px; }
+    .btn-primary-sm { background:#4f46e5; color:white; border:none; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s; }
+    .btn-primary-sm:hover { background:#3730a3; }
+    .btn-secondary-sm { background:white; color:#334155; border:1px solid #e2e8f0; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s; }
+    .btn-secondary-sm:hover { background:#f8fafc; }
+    .btn-secondary-sm:disabled { opacity:0.5; cursor:not-allowed; }
+
+    /* Drop Zone */
+    .dropzone-card { background:white; border:2px dashed #c7d2fe; border-radius:16px; padding:60px 40px; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:24px; position:relative; overflow:hidden; }
+    .dropzone-card:hover, .dropzone-card.drag-over { border-color:#4f46e5; background:#eef2ff; }
+    .dropzone-card.drag-over { transform:scale(1.01); }
+    .dz-icon { font-size:56px; margin-bottom:16px; display:block; }
+    .dz-title { font-size:18px; font-weight:700; color:#0f172a; margin-bottom:8px; }
+    .dz-subtitle { font-size:14px; color:#64748b; margin-bottom:20px; }
+    .dz-or { font-size:13px; color:#94a3b8; margin-bottom:16px; }
+    .btn-browse { display:inline-flex; align-items:center; gap:8px; background:#4f46e5; color:white; border:none; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s; }
+    .btn-browse:hover { background:#3730a3; }
+    .dz-info { margin-top:20px; display:flex; gap:20px; justify-content:center; font-size:11px; color:#94a3b8; }
+    .dz-info span { display:flex; align-items:center; gap:4px; }
+    #file-input { display:none; }
+
+    /* Upload progress */
+    #upload-progress { margin-bottom:20px; padding:16px 20px; background:white; border:1px solid #e2e8f0; border-radius:12px; display:none; }
+    .progress-label { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .progress-label span { font-size:13px; color:#334155; font-weight:500; }
+    #progress-text { font-size:12px; color:#64748b; }
+    .progress-track { height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+    #progress-bar { height:100%; width:0; background:linear-gradient(90deg,#4f46e5,#06b6d4); border-radius:4px; transition:width 0.3s ease; }
+
+    /* File list */
+    #file-list { background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; margin-bottom:24px; display:none; }
+    .file-list-header { padding:14px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; }
+    .file-list-header h3 { font-size:13px; font-weight:700; color:#334155; }
+    .file-item { display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid #f1f5f9; transition:background 0.15s; }
+    .file-item:last-child { border-bottom:none; }
+    .file-item:hover { background:#fafbff; }
+    .file-icon { font-size:24px; flex-shrink:0; }
+    .file-info { flex:1; min-width:0; }
+    .file-name { font-size:13px; font-weight:600; color:#334155; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .file-size { font-size:11px; color:#94a3b8; margin-top:2px; display:block; }
+    .file-status { font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px; white-space:nowrap; }
+    .file-status.pending { background:#f1f5f9; color:#64748b; }
+    .file-status.success { background:#f0fdf4; color:#16a34a; }
+    .file-status.error { background:#fef2f2; color:#dc2626; }
+
+    /* Existing files table */
+    .files-table-card { background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; }
+    .table-toolbar { padding:16px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:12px; }
+    .table-search { flex:1; display:flex; align-items:center; gap:8px; background:white; border:1px solid #e2e8f0; border-radius:8px; padding:7px 12px; }
+    .table-search input { border:none; background:none; outline:none; font-size:13px; color:#334155; width:100%; font-family:'Inter',sans-serif; }
+    .table-search input::placeholder { color:#94a3b8; }
+    .view-toggle { display:flex; gap:4px; }
+    .view-btn { padding:6px 10px; border:1px solid #e2e8f0; background:white; border-radius:6px; cursor:pointer; font-size:13px; transition:all 0.15s; }
+    .view-btn.active { background:#eef2ff; border-color:#c7d2fe; color:#4f46e5; }
+
+    .files-table { width:100%; border-collapse:collapse; }
+    .files-table th { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; padding:11px 16px; text-align:left; border-bottom:1px solid #f1f5f9; background:#fafbff; }
+    .files-table td { padding:13px 16px; font-size:13px; border-bottom:1px solid #f8fafc; color:#334155; }
+    .files-table tbody tr:hover td { background:#fafbff; }
+    .files-table tbody tr:last-child td { border-bottom:none; }
+    .file-cell { display:flex; align-items:center; gap:10px; }
+    .file-cell-icon { font-size:20px; }
+    .file-cell-name { font-weight:600; color:#0f172a; }
+    .file-cell-path { font-size:11px; color:#94a3b8; }
+    .file-size-cell { font-family:monospace; font-size:12px; color:#64748b; }
+    .file-date-cell { font-size:12px; color:#64748b; }
+    .file-actions { display:flex; gap:6px; }
+    .file-action-btn { padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid #e2e8f0; background:white; color:#64748b; font-family:'Inter',sans-serif; transition:all 0.15s; }
+    .file-action-btn:hover { background:#f8fafc; color:#334155; }
+    .file-action-btn.danger:hover { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
+    .file-type-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; font-family:monospace; text-transform:uppercase; }
+    .badge-pdf { background:#fef2f2; color:#dc2626; }
+    .badge-zip { background:#fef3c7; color:#d97706; }
+    .badge-img { background:#f0fdf4; color:#16a34a; }
+    .badge-doc { background:#eff6ff; color:#2563eb; }
+    .badge-misc { background:#f8fafc; color:#64748b; }
+
+    .alert { padding:12px 16px; border-radius:8px; font-size:13px; margin-bottom:16px; }
+    .alert-success { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+    .alert-error { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+  </style>
+</head>
+<body>
+<div class="upload-layout">
+
+  <!-- Topbar -->
+  <header class="upload-topbar">
+    <a class="upload-logo" href="/">
+      <span class="upload-logo-hex">⬡</span>
+      <span class="upload-logo-name">TechVault</span>
+    </a>
+    <nav class="topbar-nav">
+      <a href="/dashboard" class="tnav-item">Dashboard</a>
+      <a href="/upload" class="tnav-item active">Files</a>
+      <a href="/api/users" class="tnav-item">Users</a>
+      <a href="/api/config" class="tnav-item">API</a>
+    </nav>
+    <div class="topbar-right">
+      <div class="topbar-avatar">JT</div>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="upload-sidebar">
+    <div class="sidebar-heading">Storage</div>
+    <button class="sidebar-link active">
+      <span>🗂</span> All Files
+    </button>
+    <button class="sidebar-link">
+      <span>⭐</span> Starred
+    </button>
+    <button class="sidebar-link">
+      <span>📤</span> Shared by me
+    </button>
+    <button class="sidebar-link">
+      <span>🗑</span> Trash
+    </button>
+
+    <div class="sidebar-heading" style="margin-top:8px">Folders</div>
+    <button class="sidebar-link"><span>📁</span> Documents</button>
+    <button class="sidebar-link"><span>📁</span> Images</button>
+    <button class="sidebar-link"><span>📁</span> Backups</button>
+    <button class="sidebar-link"><span>📁</span> Reports</button>
+    <button class="sidebar-link"><span>📁</span> Uploads</button>
+
+    <div class="storage-meter">
+      <div class="storage-label">
+        <span>Storage</span>
+        <span>68%</span>
+      </div>
+      <div class="storage-bar">
+        <div class="storage-fill"></div>
+      </div>
+      <div class="storage-numbers">847 GB of 1.2 TB used</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="upload-main">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">File Manager</span>
+    </div>
+
+    <div class="section-header">
+      <h1>File Manager</h1>
+      <div class="section-actions">
+        <button class="btn-secondary-sm" id="upload-btn" disabled>⬆ Upload Selected</button>
+        <button class="btn-primary-sm" id="new-folder-btn">+ New Folder</button>
+      </div>
+    </div>
+
+    <!-- Alert area -->
+    <div id="upload-alert" class="alert" style="display:none"></div>
+
+    <!-- Drop Zone -->
+    <div class="dropzone-card" id="dropzone">
+      <span class="dz-icon">☁️</span>
+      <div class="dz-title">Drop files here to upload</div>
+      <div class="dz-subtitle">Supports all file types up to 10MB per file</div>
+      <div class="dz-or">— or —</div>
+      <button class="btn-browse" onclick="document.getElementById('file-input').click()">
+        📂 Browse Files
+      </button>
+      <input type="file" id="file-input" multiple accept="*/*" />
+      <div class="dz-info">
+        <span>✓ Drag &amp; Drop</span>
+        <span>✓ Multi-file</span>
+        <span>✓ All formats</span>
+        <span>✓ 10MB limit</span>
+      </div>
+    </div>
+
+    <!-- Upload Progress -->
+    <div id="upload-progress">
+      <div class="progress-label">
+        <span>Uploading…</span>
+        <span id="progress-text">Preparing…</span>
+      </div>
+      <div class="progress-track">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Selected File List -->
+    <div id="file-list">
+      <div class="file-list-header">
+        <h3 id="file-list-title">Selected Files</h3>
+        <span id="file-count" style="font-size:12px;color:#94a3b8"></span>
+      </div>
+      <!-- Populated by app.js -->
+    </div>
+
+    <!-- Existing Files Table -->
+    <div class="files-table-card">
+      <div class="table-toolbar">
+        <div class="table-search">
+          <span>🔍</span>
+          <input type="text" id="search-input" placeholder="Search files…" />
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active">☰ List</button>
+          <button class="view-btn">⊞ Grid</button>
+        </div>
+        <button class="btn-secondary-sm">↕ Sort</button>
+        <button class="btn-secondary-sm">⚙ Filter</button>
+      </div>
+
+      <table class="files-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" /></th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Modified</th>
+            <th>Shared</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Fake file data — looks like real production content -->
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td>
+              <div class="file-cell">
+                <span class="file-cell-icon">📄</span>
+                <div>
+                  <div class="file-cell-name">Q4_Financial_Report_2024.pdf</div>
+                  <div class="file-cell-path">/reports/</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="file-type-badge badge-pdf">PDF</span></td>
+            <td class="file-size-cell">2.4 MB</td>
+            <td class="file-date-cell">Jan 14, 2024</td>
+            <td><span style="font-size:11px;color:#16a34a">● Finance Team</span></td>
+            <td><div class="file-actions"><button class="file-action-btn">Download</button><button class="file-action-btn">Share</button><button class="file-action-btn danger">Delete</button></div></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td>
+              <div class="file-cell">
+                <span class="file-cell-icon">🗜</span>
+                <div>
+                  <div class="file-cell-name">server_backup_2024_01_14.tar.gz</div>
+                  <div class="file-cell-path">/backups/</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="file-type-badge badge-zip">TAR.GZ</span></td>
+            <td class="file-size-cell">847 MB</td>
+            <td class="file-date-cell">Jan 14, 2024</td>
+            <td><span style="font-size:11px;color:#64748b">Private</span></td>
+            <td><div class="file-actions"><button class="file-action-btn">Download</button><button class="file-action-btn">Share</button><button class="file-action-btn danger">Delete</button></div></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td>
+              <div class="file-cell">
+                <span class="file-cell-icon">🖼</span>
+                <div>
+                  <div class="file-cell-name">brand_assets_v3.zip</div>
+                  <div class="file-cell-path">/images/</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="file-type-badge badge-zip">ZIP</span></td>
+            <td class="file-size-cell">124 MB</td>
+            <td class="file-date-cell">Jan 10, 2024</td>
+            <td><span style="font-size:11px;color:#16a34a">● Marketing</span></td>
+            <td><div class="file-actions"><button class="file-action-btn">Download</button><button class="file-action-btn">Share</button><button class="file-action-btn danger">Delete</button></div></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td>
+              <div class="file-cell">
+                <span class="file-cell-icon">📝</span>
+                <div>
+                  <div class="file-cell-name">API_Documentation_v4.2.docx</div>
+                  <div class="file-cell-path">/documents/</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="file-type-badge badge-doc">DOCX</span></td>
+            <td class="file-size-cell">3.1 MB</td>
+            <td class="file-date-cell">Jan 8, 2024</td>
+            <td><span style="font-size:11px;color:#16a34a">● Engineering</span></td>
+            <td><div class="file-actions"><button class="file-action-btn">Download</button><button class="file-action-btn">Share</button><button class="file-action-btn danger">Delete</button></div></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td>
+              <div class="file-cell">
+                <span class="file-cell-icon">📊</span>
+                <div>
+                  <div class="file-cell-name">customer_data_export_jan2024.csv</div>
+                  <div class="file-cell-path">/uploads/</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="file-type-badge badge-misc">CSV</span></td>
+            <td class="file-size-cell">18.7 MB</td>
+            <td class="file-date-cell">Jan 7, 2024</td>
+            <td><span style="font-size:11px;color:#64748b">Private</span></td>
+            <td><div class="file-actions"><button class="file-action-btn">Download</button><button class="file-action-btn">Share</button><button class="file-action-btn danger">Delete</button></div></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td>
+              <div class="file-cell">
+                <span class="file-cell-icon">⚙</span>
+                <div>
+                  <div class="file-cell-name">deploy_config.yaml</div>
+                  <div class="file-cell-path">/config/</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="file-type-badge badge-misc">YAML</span></td>
+            <td class="file-size-cell">4.2 KB</td>
+            <td class="file-date-cell">Jan 5, 2024</td>
+            <td><span style="font-size:11px;color:#16a34a">● DevOps</span></td>
+            <td><div class="file-actions"><button class="file-action-btn">Download</button><button class="file-action-btn">Share</button><button class="file-action-btn danger">Delete</button></div></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td>
+              <div class="file-cell">
+                <span class="file-cell-icon">🔑</span>
+                <div>
+                  <div class="file-cell-name">ssl_certificate_2024.crt</div>
+                  <div class="file-cell-path">/config/ssl/</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="file-type-badge badge-misc">CRT</span></td>
+            <td class="file-size-cell">2.1 KB</td>
+            <td class="file-date-cell">Jan 1, 2024</td>
+            <td><span style="font-size:11px;color:#64748b">Private</span></td>
+            <td><div class="file-actions"><button class="file-action-btn">Download</button><button class="file-action-btn">Share</button><button class="file-action-btn danger">Delete</button></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div><!-- /files-table-card -->
+
+    <!-- Pagination -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:13px;color:#64748b;">
+      <span>Showing 7 of 142 files</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-secondary-sm">← Previous</button>
+        <button class="btn-secondary-sm" style="background:#eef2ff;color:#4f46e5;border-color:#c7d2fe">1</button>
+        <button class="btn-secondary-sm">2</button>
+        <button class="btn-secondary-sm">3</button>
+        <button class="btn-secondary-sm">Next →</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Wire up the file-list header when app.js populates it
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      const count = fileInput.files.length;
+      const el = document.getElementById('file-list-title');
+      const ct = document.getElementById('file-count');
+      if (el) el.textContent = `Selected Files (${count})`;
+      if (ct) ct.textContent = count + ' file' + (count !== 1 ? 's' : '') + ' ready to upload';
+    });
+  }
+
+  // New folder button
+  const newFolderBtn = document.getElementById('new-folder-btn');
+  if (newFolderBtn) {
+    newFolderBtn.addEventListener('click', () => {
+      const name = prompt('Enter folder name:');
+      if (name && name.trim()) {
+        alert(`Folder "${name.trim()}" created successfully.`);
+      }
+    });
+  }
+
+  // View toggle
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+});
+</script>
+</body>
+</html>

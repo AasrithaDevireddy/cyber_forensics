@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TechVault Solutions — Enterprise Cloud Infrastructure for modern engineering teams. Deploy faster, scale smarter, monitor everything." />
+  <title>TechVault Solutions — Enterprise Cloud Infrastructure</title>
+
+  <!-- Fonts: Clash Display (headings) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="/js/app.js" defer></script>
+  <style>
+    /* ─── Page-specific overrides ──────────────────────────────── */
+
+    /* Animated hero gradient mesh */
+    .hero-bg {
+      position:absolute; inset:0; z-index:0; overflow:hidden;
+      background: radial-gradient(ellipse 80% 60% at 60% -10%, rgba(79,70,229,0.18), transparent 60%),
+                  radial-gradient(ellipse 50% 40% at 10% 80%, rgba(6,182,212,0.12), transparent 50%),
+                  #fff;
+    }
+    .hero-bg::after {
+      content:'';
+      position:absolute; inset:0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234f46e5' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    /* Hero layout */
+    .hero-inner {
+      position:relative; z-index:1;
+      max-width:1200px; margin:0 auto; padding:100px 24px 80px;
+      display:grid; grid-template-columns:1fr 520px; gap:60px; align-items:center;
+    }
+
+    /* Activity ticker */
+    .activity-ticker-wrap {
+      display:inline-flex; align-items:center; gap:10px;
+      background:rgba(79,70,229,0.06); border:1px solid rgba(79,70,229,0.15);
+      border-radius:100px; padding:6px 16px 6px 10px;
+      font-size:12px; color:#4f46e5; font-weight:500;
+      margin-bottom:28px;
+    }
+    .ticker-dot { width:7px;height:7px;border-radius:50%;background:#4f46e5;animation:tickPulse 1.5s infinite; }
+    @keyframes tickPulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+    #activity-ticker { transition:opacity 0.3s,transform 0.3s; }
+
+    /* Hero title */
+    .hero-title {
+      font-size:58px; font-weight:800; line-height:1.1;
+      letter-spacing:-2px; color:#0f172a; margin-bottom:20px;
+    }
+    .hero-title .gradient-word {
+      background:linear-gradient(135deg,#4f46e5 0%,#06b6d4 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+
+    /* Trusted logos */
+    .trusted-strip {
+      margin-top:48px; padding-top:32px;
+      border-top:1px solid #f1f5f9;
+    }
+    .trusted-label { font-size:12px;color:#94a3b8;font-weight:500;margin-bottom:20px;letter-spacing:0.5px; }
+    .logos-row { display:flex; gap:32px; align-items:center; flex-wrap:wrap; }
+    .fake-logo {
+      font-size:13px; font-weight:700; color:#cbd5e1; letter-spacing:0.5px;
+      white-space:nowrap;
+    }
+
+    /* Dashboard mock */
+    .dash-mock {
+      background:#0f172a; border-radius:20px; overflow:hidden;
+      box-shadow:0 32px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.08);
+      font-family:monospace; font-size:12px;
+    }
+    .mock-titlebar {
+      background:#1e293b; padding:14px 16px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .mock-dot { width:12px;height:12px;border-radius:50%; }
+    .mock-dot.r { background:#ef4444; } .mock-dot.y { background:#f59e0b; } .mock-dot.g { background:#22c55e; }
+    .mock-url { margin-left:8px; background:#0f172a; border-radius:6px; padding:4px 12px; font-size:11px;color:#64748b;flex:1;text-align:center; }
+    .mock-body { padding:20px; }
+    .mock-kpi-row { display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px; }
+    .mock-kpi { background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px; }
+    .mock-kpi-label { font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px; }
+    .mock-kpi-val { font-size:20px;font-weight:700; }
+    .mock-kpi-val.blue { color:#60a5fa; } .mock-kpi-val.green { color:#4ade80; }
+    .mock-kpi-val.orange { color:#fb923c; } .mock-kpi-val.purple { color:#c084fc; }
+    .mock-chart-row { background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:12px; }
+    .mock-chart-label { font-size:9px;color:#475569;letter-spacing:0.5px;margin-bottom:10px;text-transform:uppercase; }
+    .mock-bars { display:flex;gap:4px;align-items:flex-end;height:60px; }
+    .mock-bar { flex:1;border-radius:3px 3px 0 0;background:linear-gradient(0deg,#4f46e5,#818cf8);opacity:0.7;min-height:4px; }
+    .mock-servers { display:grid;grid-template-columns:1fr 1fr;gap:6px; }
+    .mock-server { background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 10px;font-size:10px;display:flex;align-items:center;gap:6px; }
+    .mock-server-dot { width:6px;height:6px;border-radius:50%; }
+    .mock-server-dot.ok { background:#22c55e; } .mock-server-dot.warn { background:#f59e0b; }
+    .mock-server-name { color:#94a3b8; flex:1; }
+    .mock-server-ms { color:#4ade80; }
+
+    /* Scroll reveal */
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity 0.6s ease,transform 0.6s ease; }
+    .reveal.revealed { opacity:1; transform:translateY(0); }
+
+    /* Feature cards with icon colors */
+    .feature-card-v2 {
+      background:#fff; border:1px solid #f1f5f9; border-radius:16px;
+      padding:28px; transition:all 0.25s; position:relative; overflow:hidden;
+    }
+    .feature-card-v2::before {
+      content:''; position:absolute; inset:0; opacity:0; transition:opacity 0.25s;
+      background:linear-gradient(135deg,rgba(79,70,229,0.03),transparent);
+    }
+    .feature-card-v2:hover { border-color:#c7d2fe; box-shadow:0 8px 32px rgba(79,70,229,0.08); transform:translateY(-3px); }
+    .feature-card-v2:hover::before { opacity:1; }
+    .feat-icon-wrap {
+      width:48px; height:48px; border-radius:12px; display:flex;
+      align-items:center; justify-content:center; font-size:22px;
+      margin-bottom:18px;
+    }
+    .feat-icon-wrap.blue   { background:#eff6ff; }
+    .feat-icon-wrap.purple { background:#f5f3ff; }
+    .feat-icon-wrap.green  { background:#f0fdf4; }
+    .feat-icon-wrap.orange { background:#fff7ed; }
+    .feat-icon-wrap.pink   { background:#fdf2f8; }
+    .feat-icon-wrap.cyan   { background:#ecfeff; }
+
+    /* Pricing */
+    .pricing-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto; }
+    .pricing-card {
+      background:#fff; border:1px solid #e2e8f0; border-radius:20px;
+      padding:32px; position:relative; transition:all 0.2s;
+    }
+    .pricing-card:hover { box-shadow:0 12px 40px rgba(0,0,0,0.08); }
+    .pricing-card.popular {
+      border:2px solid #4f46e5; box-shadow:0 0 0 4px rgba(79,70,229,0.06);
+    }
+    .popular-badge {
+      position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+      background:#4f46e5; color:#fff; font-size:11px; font-weight:700;
+      padding:4px 16px; border-radius:100px; letter-spacing:0.5px;
+    }
+    .plan-name { font-size:14px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px; }
+    .plan-price { font-size:42px;font-weight:800;color:#0f172a;letter-spacing:-1px;line-height:1; }
+    .plan-price span { font-size:16px;font-weight:500;color:#64748b;vertical-align:top;margin-top:10px;display:inline-block; }
+    .plan-period { font-size:12px;color:#94a3b8;margin-bottom:20px; }
+    .plan-desc { font-size:14px;color:#64748b;margin-bottom:24px;line-height:1.6; }
+    .plan-divider { height:1px;background:#f1f5f9;margin:20px 0; }
+    .plan-features { list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px; }
+    .plan-features li { font-size:13px;color:#334155;display:flex;gap:8px;align-items:flex-start; }
+    .plan-features li::before { content:'✓';color:#4f46e5;font-weight:700;flex-shrink:0; }
+    .plan-features li.dim { color:#94a3b8; }
+    .plan-features li.dim::before { content:'✕';color:#cbd5e1; }
+
+    /* Testimonials */
+    .testimonial-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px; }
+    .testimonial-card {
+      background:#fff; border:1px solid #f1f5f9; border-radius:16px;
+      padding:28px; transition:all 0.2s;
+    }
+    .testimonial-card:hover { box-shadow:var(--shadow); }
+    .testimonial-stars { color:#f59e0b;font-size:14px;margin-bottom:16px; }
+    .testimonial-text { font-size:14px;color:#334155;line-height:1.7;margin-bottom:20px; font-style:italic; }
+    .testimonial-author { display:flex;align-items:center;gap:12px; }
+    .testimonial-avatar { width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff; }
+    .testimonial-name { font-size:13px;font-weight:700;color:#0f172a; }
+    .testimonial-role { font-size:11px;color:#94a3b8; }
+
+    /* CTA */
+    .cta-grid { background:linear-gradient(135deg,#0f172a,#1e1b4b);border-radius:24px;padding:72px;display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center; }
+    .cta-grid h2 { font-size:40px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:12px; }
+    .cta-grid p { font-size:16px;color:#94a3b8;line-height:1.7; }
+    .cta-buttons { display:flex;flex-direction:column;gap:10px; }
+  </style>
+</head>
+<body>
+
+<!-- ─── Navigation ─────────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">TechVault</span>
+    </div>
+
+    <ul class="nav-links" id="nav-links-list">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="/api/config">Developers</a></li>
+      <li><a href="/api/users">Customers</a></li>
+      <li><a href="#contact">Enterprise</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <a href="/login" class="btn btn-outline">Sign In</a>
+      <a href="/login" class="btn btn-primary">Get Started Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Hero ───────────────────────────────────────────────────── -->
+<section style="position:relative;overflow:hidden" id="hero-section">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+
+    <!-- Left Copy -->
+    <div>
+      <div class="activity-ticker-wrap">
+        <div class="ticker-dot"></div>
+        <span id="activity-ticker">Acme Corp deployed 3 new servers in us-east-1</span>
+      </div>
+
+      <h1 class="hero-title">
+        Cloud infrastructure<br/>
+        built for<br/>
+        <span class="gradient-word">serious teams</span>
+      </h1>
+
+      <p class="hero-subtitle" style="max-width:440px">
+        Deploy, monitor, and scale your entire stack from one powerful control plane. 
+        SOC 2 certified, 99.99% uptime guaranteed, 47 global regions.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/login" class="btn btn-primary btn-large">Start free 14-day trial →</a>
+        <a href="/dashboard" class="btn btn-ghost btn-large">View live demo</a>
+      </div>
+
+      <div class="trusted-strip">
+        <div class="trusted-label">TRUSTED BY ENGINEERING TEAMS AT</div>
+        <div class="logos-row">
+          <span class="fake-logo">MERIDIAN</span>
+          <span class="fake-logo">SKYNET AI</span>
+          <span class="fake-logo">REDBLOCK</span>
+          <span class="fake-logo">ZENITH</span>
+          <span class="fake-logo">DATAFLOW</span>
+          <span class="fake-logo">NEXACORP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Dashboard Mock -->
+    <div class="dash-mock">
+      <div class="mock-titlebar">
+        <div class="mock-dot r"></div>
+        <div class="mock-dot y"></div>
+        <div class="mock-dot g"></div>
+        <div class="mock-url">app.techvault.io/dashboard</div>
+      </div>
+      <div class="mock-body">
+        <div class="mock-kpi-row">
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Requests/s</div>
+            <div class="mock-kpi-val blue">14.8k</div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Uptime</div>
+            <div class="mock-kpi-val green">99.97%</div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Latency</div>
+            <div class="mock-kpi-val orange">24ms</div>
+          </div>
+          <div class="mock-kpi">
+            <div class="mock-kpi-label">Active Users</div>
+            <div class="mock-kpi-val purple">2,851</div>
+          </div>
+        </div>
+
+        <div class="mock-chart-row">
+          <div class="mock-chart-label">Request Volume — Last 24h</div>
+          <div class="mock-bars">
+            <div class="mock-bar" style="height:35%"></div>
+            <div class="mock-bar" style="height:48%"></div>
+            <div class="mock-bar" style="height:52%"></div>
+            <div class="mock-bar" style="height:44%"></div>
+            <div class="mock-bar" style="height:38%"></div>
+            <div class="mock-bar" style="height:61%"></div>
+            <div class="mock-bar" style="height:79%"></div>
+            <div class="mock-bar" style="height:88%"></div>
+            <div class="mock-bar" style="height:92%"></div>
+            <div class="mock-bar" style="height:85%"></div>
+            <div class="mock-bar" style="height:74%"></div>
+            <div class="mock-bar" style="height:68%"></div>
+            <div class="mock-bar" style="height:72%"></div>
+            <div class="mock-bar" style="height:81%"></div>
+            <div class="mock-bar" style="height:94%"></div>
+            <div class="mock-bar" style="height:100%"></div>
+          </div>
+        </div>
+
+        <div class="mock-servers">
+          <div class="mock-server"><div class="mock-server-dot ok"></div><span class="mock-server-name">us-east-1</span><span class="mock-server-ms">12ms</span></div>
+          <div class="mock-server"><div class="mock-server-dot ok"></div><span class="mock-server-name">eu-west-2</span><span class="mock-server-ms">28ms</span></div>
+          <div class="mock-server"><div class="mock-server-dot ok"></div><span class="mock-server-name">ap-south-1</span><span class="mock-server-ms">89ms</span></div>
+          <div class="mock-server"><div class="mock-server-dot warn"></div><span class="mock-server-name">sa-east-1</span><span style="color:#fbbf24">142ms</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── Social Proof Numbers ───────────────────────────────────── -->
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:48px 24px">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:40px;text-align:center">
+      <div>
+        <div style="font-size:42px;font-weight:800;color:#0f172a;letter-spacing:-1px">
+          <span data-count-to="5200" data-suffix="+">5,200+</span>
+        </div>
+        <div style="font-size:14px;color:#64748b;font-weight:500;margin-top:4px">Companies using TechVault</div>
+      </div>
+      <div>
+        <div style="font-size:42px;font-weight:800;color:#0f172a;letter-spacing:-1px">
+          <span data-count-to="99" data-suffix=".99%">99.99%</span>
+        </div>
+        <div style="font-size:14px;color:#64748b;font-weight:500;margin-top:4px">Average uptime SLA</div>
+      </div>
+      <div>
+        <div style="font-size:42px;font-weight:800;color:#0f172a;letter-spacing:-1px">
+          <span data-count-to="47">47</span>
+        </div>
+        <div style="font-size:14px;color:#64748b;font-weight:500;margin-top:4px">Global edge regions</div>
+      </div>
+      <div>
+        <div style="font-size:42px;font-weight:800;color:#0f172a;letter-spacing:-1px">
+          <span data-count-to="24" data-suffix="ms">&lt;24ms</span>
+        </div>
+        <div style="font-size:14px;color:#64748b;font-weight:500;margin-top:4px">Average global latency</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Features ───────────────────────────────────────────────── -->
+<section id="features" style="padding:100px 24px;background:#fff">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:64px">
+      <div style="display:inline-block;background:#f5f3ff;color:#4f46e5;padding:6px 16px;border-radius:100px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px">Platform Features</div>
+      <h2 class="section-title" style="margin-bottom:12px">Everything your infrastructure needs</h2>
+      <p style="font-size:17px;color:#64748b;max-width:560px;margin:0 auto;line-height:1.7">
+        From zero to production-ready in under 60 seconds. TechVault handles the complexity so you can focus on building.
+      </p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div class="feature-card-v2 reveal">
+        <div class="feat-icon-wrap blue">🔒</div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a">Enterprise Security</h3>
+        <p style="font-size:14px;color:#64748b;line-height:1.7">SOC 2 Type II certified. AES-256 encryption at rest and in transit. Zero-trust architecture with fine-grained RBAC for every team member.</p>
+      </div>
+      <div class="feature-card-v2 reveal" style="transition-delay:0.1s">
+        <div class="feat-icon-wrap purple">⚡</div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a">Instant Deployment</h3>
+        <p style="font-size:14px;color:#64748b;line-height:1.7">Deploy to any cloud provider in under 60 seconds. Git-push deployments, preview environments, blue-green rollouts — all built in.</p>
+      </div>
+      <div class="feature-card-v2 reveal" style="transition-delay:0.2s">
+        <div class="feat-icon-wrap green">📊</div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a">Real-time Analytics</h3>
+        <p style="font-size:14px;color:#64748b;line-height:1.7">Sub-second dashboards across all services. Custom alerting with PagerDuty, Slack, and email integrations. Full request tracing.</p>
+      </div>
+      <div class="feature-card-v2 reveal">
+        <div class="feat-icon-wrap cyan">🌐</div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a">Global CDN</h3>
+        <p style="font-size:14px;color:#64748b;line-height:1.7">47 edge locations worldwide. Smart routing delivers content in under 20ms to 95% of global internet users. Automatic failover.</p>
+      </div>
+      <div class="feature-card-v2 reveal" style="transition-delay:0.1s">
+        <div class="feat-icon-wrap orange">🔄</div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a">Auto Backups & DR</h3>
+        <p style="font-size:14px;color:#64748b;line-height:1.7">Continuous backups with point-in-time recovery. RPO of 5 minutes, RTO of 15 minutes guaranteed. Cross-region replication.</p>
+      </div>
+      <div class="feature-card-v2 reveal" style="transition-delay:0.2s">
+        <div class="feat-icon-wrap pink">🤝</div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a">API-First Design</h3>
+        <p style="font-size:14px;color:#64748b;line-height:1.7">Full REST & GraphQL APIs for every feature. SDKs in Python, Node.js, Go, Ruby. Webhooks and event streaming included.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Pricing ────────────────────────────────────────────────── -->
+<section id="pricing" style="padding:100px 24px;background:#f8fafc">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px">
+      <div style="display:inline-block;background:#f0fdf4;color:#16a34a;padding:6px 16px;border-radius:100px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px">Simple Pricing</div>
+      <h2 class="section-title" style="margin-bottom:12px">Start free. Scale with confidence.</h2>
+      <p style="font-size:17px;color:#64748b">No hidden fees. No long-term contracts. Cancel anytime.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- Starter -->
+      <div class="pricing-card">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price"><span>$</span>49</div>
+        <div class="plan-period">per month, billed annually</div>
+        <div class="plan-desc">Perfect for small teams and early-stage startups getting their infrastructure right.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Up to 5 team members</li>
+          <li>5 server deployments</li>
+          <li>100 GB storage</li>
+          <li>Basic analytics</li>
+          <li>Community support</li>
+          <li class="dim">Custom domains</li>
+          <li class="dim">SSO / SAML</li>
+          <li class="dim">Dedicated support</li>
+        </ul>
+        <a href="/login" class="btn btn-outline btn-full">Get started</a>
+      </div>
+
+      <!-- Pro (popular) -->
+      <div class="pricing-card popular">
+        <div class="popular-badge">⭐ Most Popular</div>
+        <div class="plan-name">Professional</div>
+        <div class="plan-price"><span>$</span>299</div>
+        <div class="plan-period">per month, billed annually</div>
+        <div class="plan-desc">For growing teams who need reliability, performance, and advanced features.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Up to 25 team members</li>
+          <li>Unlimited deployments</li>
+          <li>1 TB storage</li>
+          <li>Advanced analytics & alerting</li>
+          <li>Priority email support</li>
+          <li>Custom domains & SSL</li>
+          <li>Audit logs</li>
+          <li class="dim">SSO / SAML</li>
+        </ul>
+        <a href="/login" class="btn btn-primary btn-full">Start free trial</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price"><span>$</span>999</div>
+        <div class="plan-period">per month, billed annually</div>
+        <div class="plan-desc">Custom contracts, SLAs, and a dedicated success team for large organizations.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Unlimited team members</li>
+          <li>Unlimited deployments</li>
+          <li>Custom storage quota</li>
+          <li>Full observability suite</li>
+          <li>24/7 dedicated support</li>
+          <li>Custom domains & SSL</li>
+          <li>SSO / SAML / SCIM</li>
+          <li>99.99% SLA guarantee</li>
+        </ul>
+        <a href="#contact" class="btn btn-outline btn-full">Contact sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Testimonials ───────────────────────────────────────────── -->
+<section style="padding:100px 24px;background:#fff">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:16px">
+      <h2 class="section-title">Loved by engineering teams</h2>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card reveal">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"TechVault cut our infrastructure ops time by 70%. The deployment pipeline is incredible — what used to take our team hours now takes minutes."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#4f46e5,#06b6d4)">SM</div>
+          <div><div class="testimonial-name">Sarah Mitchell</div><div class="testimonial-role">CTO @ Meridian Digital</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal" style="transition-delay:0.1s">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"The real-time analytics dashboard alone is worth the price. We caught a memory leak that would have taken us days to find otherwise."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#059669,#06b6d4)">JT</div>
+          <div><div class="testimonial-name">James Thornton</div><div class="testimonial-role">VP Engineering @ Zenith</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal" style="transition-delay:0.2s">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"We migrated 12TB of data to TechVault in a weekend with zero downtime. The support team was available at 3am — genuinely impressive."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#dc2626,#f59e0b)">EC</div>
+          <div><div class="testimonial-name">Emily Chen</div><div class="testimonial-role">DevOps Lead @ Dataflow Inc</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ────────────────────────────────────────────────────── -->
+<section style="padding:80px 24px" id="contact">
+  <div class="container">
+    <div class="cta-grid reveal">
+      <div>
+        <h2>Ready to modernize your infrastructure?</h2>
+        <p>Join 5,200+ companies already trusting TechVault. Start your free 14-day trial — no credit card required.</p>
+      </div>
+      <div class="cta-buttons">
+        <a href="/login" class="btn btn-white btn-large">Start Free Trial →</a>
+        <a href="/dashboard" class="btn btn-outline-white btn-large">View Live Demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo" style="margin-bottom:12px">
+          <span class="logo-icon">⬡</span>
+          <span class="logo-text" style="color:#fff">TechVault</span>
+        </div>
+        <p>Enterprise cloud infrastructure for modern engineering teams. Built on reliability, trust, and performance.</p>
+        <div style="margin-top:16px;display:flex;gap:12px">
+          <a href="#" style="color:#475569;font-size:18px;text-decoration:none">𝕏</a>
+          <a href="#" style="color:#475569;font-size:18px;text-decoration:none">in</a>
+          <a href="#" style="color:#475569;font-size:18px;text-decoration:none">gh</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Product</h4>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/upload">File Manager</a>
+        <a href="/api/users">Users API</a>
+        <a href="/api/products">Products API</a>
+        <a href="/api/config">Config API</a>
+        <a href="/api/search">Search API</a>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Careers — 14 open roles</a>
+        <a href="#">Blog</a>
+        <a href="#">Press Kit</a>
+        <a href="#">Status Page</a>
+      </div>
+      <div class="footer-links">
+        <h4>Legal & Admin</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Security Policy</a>
+        <a href="#">GDPR Compliance</a>
+        <a href="/admin">Admin Portal</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 TechVault Solutions, Inc. All rights reserved. — San Francisco, CA · London · Singapore</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

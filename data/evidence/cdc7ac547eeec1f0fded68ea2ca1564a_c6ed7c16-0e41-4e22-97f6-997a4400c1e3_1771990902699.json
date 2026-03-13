@@ -1,0 +1,42 @@
+{
+  "sessionId": "cdc7ac547eeec1f0fded68ea2ca1564a",
+  "eventId": "c6ed7c16-0e41-4e22-97f6-997a4400c1e3",
+  "timestamp": "2026-02-25T03:41:42.699Z",
+  "payload": {
+    "method": "GET",
+    "path": "/login",
+    "query": {},
+    "body": {},
+    "headers": {
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "upgrade-insecure-requests": "1",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "navigate",
+      "sec-fetch-user": "?1",
+      "sec-fetch-dest": "document",
+      "referer": "http://localhost:3000/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "en-US,en;q=0.9",
+      "if-none-match": "W/\"14f1-19c86d1b8d6\"",
+      "if-modified-since": "Sun, 22 Feb 2026 19:26:57 GMT"
+    },
+    "attackType": "SSRF",
+    "detections": [
+      {
+        "type": "SSRF",
+        "value": "http://localhost:3000/"
+      },
+      {
+        "type": "SQL_INJECTION",
+        "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+      }
+    ]
+  },
+  "hash": "31a2b5553b42c99b700f27459b1a0a5606d1bdf247a5844e4186ec0bf90b82ed"
+}

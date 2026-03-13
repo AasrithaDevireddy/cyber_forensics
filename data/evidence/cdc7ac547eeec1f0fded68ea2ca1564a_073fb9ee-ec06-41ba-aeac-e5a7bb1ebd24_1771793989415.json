@@ -1,0 +1,40 @@
+{
+  "sessionId": "cdc7ac547eeec1f0fded68ea2ca1564a",
+  "eventId": "073fb9ee-ec06-41ba-aeac-e5a7bb1ebd24",
+  "timestamp": "2026-02-22T20:59:49.415Z",
+  "payload": {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "query": {},
+    "body": {
+      "username": "aslesh",
+      "password": "123456"
+    },
+    "headers": {
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "content-length": "41",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+      "content-type": "application/json",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "origin": "http://localhost:3000",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "http://localhost:3000/login",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "en-US,en;q=0.9"
+    },
+    "attackType": "SSRF",
+    "detections": [
+      {
+        "type": "SSRF",
+        "value": "http://localhost:3000/login"
+      }
+    ]
+  },
+  "hash": "0d8912ae4adf5cc2b7fec63a99a2e59ed251634fd0debf6e1135e0252250bbf9"
+}

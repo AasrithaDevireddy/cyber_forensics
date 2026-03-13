@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — TechVault Solutions</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="auth-body">
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="nav-logo" style="justify-content:center;margin-bottom:8px">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">TechVault</span>
+      </div>
+      <h1>Welcome back</h1>
+      <p>Sign in to your account to continue</p>
+    </div>
+    
+    <div id="login-error" class="alert alert-error" style="display:none"></div>
+    <div id="login-success" class="alert alert-success" style="display:none"></div>
+    
+    <form id="login-form" class="auth-form">
+      <div class="form-group">
+        <label for="username">Username or Email</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username"
+          placeholder="you@company.com"
+          autocomplete="username"
+          required
+        />
+      </div>
+      
+      <div class="form-group">
+        <label for="password">
+          Password
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+      
+      <div class="form-check">
+        <input type="checkbox" id="remember" name="remember" />
+        <label for="remember">Remember me for 30 days</label>
+      </div>
+      
+      <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+        Sign In
+      </button>
+    </form>
+    
+    <div class="auth-divider">
+      <span>or continue with</span>
+    </div>
+    
+    <div class="social-buttons">
+      <button class="btn btn-social">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </button>
+      <button class="btn btn-social">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#4285F4"><path d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.615 24 12.255 24z" fill="#34A853"/><path d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 0 0 0 10.76l3.98-3.09z" fill="#FBBC05"/><path d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.64 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z" fill="#EA4335"/></svg>
+        Google
+      </button>
+    </div>
+    
+    <p class="auth-footer">
+      Don't have an account? <a href="/login">Start free trial</a>
+    </p>
+  </div>
+  
+  <div class="auth-trust">
+    <span>🔒 256-bit SSL encrypted</span>
+    <span>•</span>
+    <span>SOC 2 Type II Certified</span>
+    <span>•</span>
+    <span>GDPR Compliant</span>
+  </div>
+</div>
+
+<script>
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const btn = document.getElementById('login-btn');
+  const errorEl = document.getElementById('login-error');
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+  errorEl.style.display = 'none';
+  
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      document.getElementById('login-success').textContent = 'Login successful! Redirecting...';
+      document.getElementById('login-success').style.display = 'block';
+      setTimeout(() => window.location.href = '/dashboard', 1500);
+    } else {
+      errorEl.textContent = data.error || data.message || 'Login failed. Please try again.';
+      errorEl.style.display = 'block';
+    }
+  } catch (err) {
+    errorEl.textContent = 'Network error. Please check your connection.';
+    errorEl.style.display = 'block';
+  }
+  
+  btn.textContent = 'Sign In';
+  btn.disabled = false;
+});
+</script>
+
+</body>
+</html>
